@@ -1,7 +1,8 @@
 from flask import render_template,url_for, flash, redirect
+from simulator import app,db,bcrypt
 from simulator.forms import RegistrationForm, LoginForm
 from simulator.models import User,Bets_placed
-from simulator import app
+
 
 open_bet_ids=[1,2,3,4]
 
@@ -19,8 +20,12 @@ def about():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data,password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
         flash(f'Account created for {form.username.data}!', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
