@@ -25,7 +25,7 @@ class Bets_placed(db.Model):
     stake = db.Column(db.Integer, nullable=False)
     ratio = db.Column(db.Float, nullable=False)
     return_ = db.Column(db.Float, nullable=False)
-    bet_status = db.Column(db.String(5), nullable=False)
+    bet_status = db.Column(db.String(5), default='Open')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     def __repr__(self):
         return f"Post('{self.id}', '{self.ratio}')"

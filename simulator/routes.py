@@ -1,15 +1,15 @@
 from flask import render_template,url_for, flash, redirect , request
 from simulator import app,db,bcrypt
-from simulator.forms import RegistrationForm, LoginForm
+from simulator.forms import RegistrationForm, LoginForm ,NewBet
 from simulator.models import User,Bets_placed
 from flask_login import login_user,current_user,logout_user,login_required
 
-open_bet_ids=[1,2,3,4]
 
 @app.route('/index')
 @app.route('/')
 def index():
-    return render_template('index.html',open_bet_ids=open_bet_ids,title='Index')
+    
+    return render_template('index.html',title='Index')
 
 @app.route('/about')
 def about():
@@ -58,4 +58,52 @@ def logout():
 @login_required
 def account():
     return render_template('account.html', title='Account')
+    
+    
+
+#main functionality
+
+@app.route('/newbet',methods=['GET', 'POST'])
+@login_required
+def newbet():
+    form = NewBet()
+    if form.validate_on_submit():
+        return_=form.stake.data*form.ratio.data
+        new_bet=Bets_placed(team_a=form.teamA.data,team_b=form.teamB.data,condition=form.bet_condtion.data,stake=form.stake.data,
+                            ratio=form.ratio.data,return_=return_,user_id=current_user.username)
+        
+        db.session.add(new_bet)
+        db.session.commit()
+        flash(f'Bet placed successfully', 'success')
+        return redirect(url_for('newbet'))
+    
+    
+    
+    return render_template('newbet.html',title='New Bet',form=form)
+
+import pandas as pd
+
+@app.route('/openbets',methods=['GET', 'POST'])
+@login_required
+def openbets():
+    b=Bets_placed.query.filter_by(user_id='krishna5972',bet_status='Open')
+    
+    dict_={}
+    for i in b:
+        mini_dict_={}
+        mini_dict_['id']=i.id
+        mini_dict_['date_placed']=i.date_placed
+        mini_dict_['team_a']=i.team_a
+        mini_dict_['team_b']=i.team_b
+        mini_dict_['condition']=i.condition
+        mini_dict_['stake']=i.stake
+        mini_dict_['ratio']=i.ratio
+        mini_dict_['return_']=i.return_
+        mini_dict_['bet_status']=i.bet_status
+        
+        dict_[i.id]=mini_dict_
+    bets_open_df=pd.DataFrame(dict_).transpose()
+
+    return render_template('openbets.html',tables=[bets_open_df.to_html(classes='data')],title='Open Bets',titles=bets_open_df.columns.values)
+    
     

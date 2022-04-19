@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+    {% for table in tables %}
+        {{titles[loop.index]}}
+        {{ table|safe }}
+        <script type=text/javascript>
+
+        <button type="button" class="btn btn-light" onclick="myFunction({{uid}})">
+            <i style="color:red" class="fa fa-times fa-1x"></i>
+        </button>
+        </script>
+    {% endfor %}
+
+
+{% endblock content %}

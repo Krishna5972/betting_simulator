@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField,FloatField
 from wtforms.validators import DataRequired, Length, EqualTo,ValidationError
 from simulator.models import User
 
@@ -31,3 +31,18 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+    
+    
+class NewBet(FlaskForm):
+    teamA = StringField('Team A',
+                        validators=[DataRequired(), Length(min=2, max=20)])
+    teamB = StringField('Team B',
+                        validators=[DataRequired(), Length(min=2, max=20)])
+    bet_condtion = StringField('Bet Condition',
+                        validators=[DataRequired()])
+    stake = FloatField('Stake',
+                        validators=[DataRequired()])
+    ratio=FloatField('Ratio',
+                        validators=[DataRequired()])
+    
+    submit = SubmitField('Place Bet')
