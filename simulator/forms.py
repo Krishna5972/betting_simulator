@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,IntegerField,FloatField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,FloatField,RadioField
 from wtforms.validators import DataRequired, Length, EqualTo,ValidationError
 from simulator.models import User
 
@@ -46,3 +46,16 @@ class NewBet(FlaskForm):
                         validators=[DataRequired()])
     
     submit = SubmitField('Place Bet')
+    
+
+    
+    
+class Settle(FlaskForm) :
+    state = RadioField('BetStatus', choices=[('Won','Won'),('Lost','Lost')])
+    submit = SubmitField('Settle')
+    
+
+class Deposit(FlaskForm) :
+    amount=FloatField('Amount',
+                        validators=[DataRequired()])
+    submit = SubmitField('Deposit')

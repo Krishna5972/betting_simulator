@@ -1,18 +1,25 @@
 from flask import render_template,url_for, flash, redirect , request
 from simulator import app,db,bcrypt
-from simulator.forms import RegistrationForm, LoginForm ,NewBet
+from simulator.forms import RegistrationForm, LoginForm ,NewBet ,Settle,Deposit
 from simulator.models import User,Bets_placed
 from flask_login import login_user,current_user,logout_user,login_required
-
+from datetime import datetime 
 
 @app.route('/index')
 @app.route('/')
 def index():
-    
+    if current_user.is_authenticated:
+        current_amount=User.query.filter_by(username=current_user.username).first()
+        balance=current_amount.amount
+        return render_template('index.html',title='Index',balance=balance)
     return render_template('index.html',title='Index')
 
 @app.route('/about')
 def about():
+    if current_user.is_authenticated:
+        current_amount=User.query.filter_by(username=current_user.username).first()
+        balance=current_amount.amount
+        return render_template('about.html',title='Index',balance=balance)
     return render_template('about.html',title='About')
 
 
@@ -54,10 +61,24 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route("/account")
+@app.route("/account",methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    if current_user.is_authenticated:
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            balance=current_amount.amount
+    form = Deposit()
+    if form.validate_on_submit():
+        user=User.query.filter_by(username=current_user.username).first()
+        user.amount=user.amount+form.amount.data
+        db.session.commit()
+        flash(f'{form.amount.data} deposited Successfully ', 'success')
+        if current_user.is_authenticated:
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            balance=current_amount.amount
+        return redirect(url_for('account'))
+    
+    return render_template('account.html', title='Account',form=form,balance=balance)
     
     
 
@@ -66,44 +87,75 @@ def account():
 @app.route('/newbet',methods=['GET', 'POST'])
 @login_required
 def newbet():
+    if current_user.is_authenticated:
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            balance=current_amount.amount
     form = NewBet()
     if form.validate_on_submit():
         return_=form.stake.data*form.ratio.data
         new_bet=Bets_placed(team_a=form.teamA.data,team_b=form.teamB.data,condition=form.bet_condtion.data,stake=form.stake.data,
-                            ratio=form.ratio.data,return_=return_,user_id=current_user.username)
+                            ratio=form.ratio.data,return_=return_,user_id=current_user.username,date_placed=datetime.now())
         
         db.session.add(new_bet)
+        current_amount=User.query.filter_by(username=current_user.username).first()
+        current_amount.amount=current_amount.amount-form.stake.data
         db.session.commit()
         flash(f'Bet placed successfully', 'success')
         return redirect(url_for('newbet'))
     
     
     
-    return render_template('newbet.html',title='New Bet',form=form)
-
-import pandas as pd
+    return render_template('newbet.html',title='New Bet',form=form,balance=balance)
 
 @app.route('/openbets',methods=['GET', 'POST'])
 @login_required
 def openbets():
-    b=Bets_placed.query.filter_by(user_id='krishna5972',bet_status='Open')
-    
-    dict_={}
-    for i in b:
-        mini_dict_={}
-        mini_dict_['id']=i.id
-        mini_dict_['date_placed']=i.date_placed
-        mini_dict_['team_a']=i.team_a
-        mini_dict_['team_b']=i.team_b
-        mini_dict_['condition']=i.condition
-        mini_dict_['stake']=i.stake
-        mini_dict_['ratio']=i.ratio
-        mini_dict_['return_']=i.return_
-        mini_dict_['bet_status']=i.bet_status
+    if current_user.is_authenticated:
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            balance=current_amount.amount
+    bets=Bets_placed.query.filter_by(user_id=current_user.username,bet_status='Open')
+    form = Settle()
+    # dict_={}
+    # for i in qinter:
+    #     mini_dict_={}
+    #     mini_dict_['id']=i.id
+    #     mini_dict_['date_placed']=(i.date_placed).strftime("%d/%m/%Y, %H:%M")
+    #     mini_dict_['team_a']=i.team_a
+    #     mini_dict_['team_b']=i.team_b
+    #     mini_dict_['condition']=i.condition
+    #     mini_dict_['stake']=i.stake
+    #     mini_dict_['ratio']=i.ratio
+    #     mini_dict_['return_']=i.return_
+    #     mini_dict_['bet_status']=i.bet_status
         
-        dict_[i.id]=mini_dict_
-    bets_open_df=pd.DataFrame(dict_).transpose()
+    #     dict_[i.id]=mini_dict_
+    # bets_open_df=pd.DataFrame(dict_).transpose()
+    
+    if form.validate_on_submit():
+        bet_id = request.form.get('bet_id')
+        if form.state.data=='Won':
+            bet=Bets_placed.query.filter_by(id=bet_id).first()
+            bet.bet_status = 'Won'
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            current_amount.amount=current_amount.amount+bet.return_
+            db.session.commit()
+            
+        else:
+            bet=Bets_placed.query.filter_by(id=bet_id).first()
+            bet.bet_status = 'Lost'
+            db.session.commit()
+        flash(f'Selected Bet Closed successfully', 'success')
+        return redirect(url_for('openbets'))
+    return render_template('openbets.html',bets=bets,form=form,balance=balance)
 
-    return render_template('openbets.html',tables=[bets_open_df.to_html(classes='data')],title='Open Bets',titles=bets_open_df.columns.values)
+
+@app.route('/bet_history',methods=['GET', 'POST'])
+@login_required
+def bet_history():
+    if current_user.is_authenticated:
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            balance=current_amount.amount
+    bets=Bets_placed.query.filter_by(user_id=current_user.username,bet_status='Open')
     
-    
+    bets=Bets_placed.query.filter(Bets_placed.bet_status !='Open',Bets_placed.user_id==current_user.username)
+    return render_template('bets_history.html',bets=bets,balance=balance)

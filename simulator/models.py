@@ -12,6 +12,7 @@ class User(db.Model,UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(70), nullable=False)
     bets = db.relationship('Bets_placed', backref='bets', lazy=True)
+    amount=db.Column(db.Float(20) , default=0.0)
 
     def __repr__(self):
         return f"User('{self.username}')"
