@@ -51,19 +51,7 @@
             </div>
             
             
-            <div class="form-group">
-                {{ form.stake.label(class="form-control-label") }}
-                {% if form.stake.errors %}
-                    {{ form.stake(class="form-control form-control-lg is-invalid") }}
-                    <div class="invalid-feedback">
-                        {% for error in form.stake.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.stake(class="form-control form-control-lg") }}
-                {% endif %}
-            </div>
+            
 
             <div class="form-group">
                 {{ form.ratio.label(class="form-control-label",autocomplete="off") }}
@@ -79,12 +67,46 @@
                 {% endif %}
             </div>
 
+            <div class="form-group">
+                {{ form.stake.label(class="form-control-label") }}
+                {% if form.stake.errors %}
+                    {{ form.stake(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.stake.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.stake(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
 
+            <script>
+                document.getElementById("ratio").onkeyup = function() {myMethod()};
+                function myMethod() {
+                var ratio = document.getElementById("ratio");
+                var stake = document.getElementById("stake");
+                document.getElementById("returns_mul").innerHTML  = ratio.value * stake.value ;
+            }
+
+            document.getElementById("stake").onkeyup = function() {myMethod()};
+                function myMethod() {
+                var ratio = document.getElementById("ratio");
+                var stake = document.getElementById("stake");
+                document.getElementById("returns_mul").innerHTML  = ratio.value * stake.value ;
+            }
+                </script>
+
+            <em>Return: </em><em id="returns_mul"></em>
+
+           
         </fieldset>
         <div class="form-group">
             {{ form.submit(class="btn btn-outline-info") }}
         </div>
     </form>
 </div>
+
+
 
 {% endblock content %}
