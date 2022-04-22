@@ -23,10 +23,20 @@ class Bets_placed(db.Model):
     team_b = db.Column(db.String(100), nullable=False)
     condition = db.Column(db.String(100), nullable=False)
     date_placed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    stake = db.Column(db.Integer, nullable=False)
+    stake = db.Column(db.Float, nullable=False)
     ratio = db.Column(db.Float, nullable=False)
     return_ = db.Column(db.Float, nullable=False)
     bet_status = db.Column(db.String(5), default='Open')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     def __repr__(self):
         return f"Post('{self.id}', '{self.ratio}')"
+    
+    
+class Transactions(db.Model):
+    id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type=db.Column(db.String(10), nullable=False)
+    date_placed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    amount = db.Column(db.Float, nullable=False)
+ 
+    def __repr__(self):
+        return f"Post('{self.id}', '{self.amount}')"

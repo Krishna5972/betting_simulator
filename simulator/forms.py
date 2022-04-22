@@ -51,11 +51,18 @@ class NewBet(FlaskForm):
     
     
 class Settle(FlaskForm) :
-    state = RadioField('BetStatus', choices=[('Won','Won'),('Lost','Lost')])
+    state = RadioField('BetStatus', choices=[('Won','Won'),('Lost','Lost'),('Cancel','Cancel')])
     submit = SubmitField('Settle')
+    cancel = SubmitField('Cancel')
+    
     
 
 class Deposit(FlaskForm) :
     amount=FloatField('Amount',
                         validators=[DataRequired()])
     submit = SubmitField('Deposit')
+    
+class Withdraw(FlaskForm) :
+    amount=FloatField('Amount',
+                        validators=[DataRequired()])
+    submit = SubmitField('Withdraw')
