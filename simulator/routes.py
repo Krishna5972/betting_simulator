@@ -84,8 +84,15 @@ def account():
     
     total_deposited=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='deposit').first()
     total_withdrawn=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='withdraw').first()
-
-    net_position=(total_deposited[0]-total_withdrawn[0])-balance
+    try:
+        net_position=balance-abs(total_deposited[0]-total_withdrawn[0])
+    except TypeError:
+        try:
+            net_position=balance-total_deposited[0]
+        except TypeError:
+            net_position=0
+        
+        
 
     return render_template('account.html', title='Account',form1=form1,form2=form2,balance=balance,net_position=net_position)
     
@@ -120,15 +127,20 @@ def newbet():
     form = NewBet()
     if form.validate_on_submit():
         return_=form.stake.data*form.ratio.data
-        new_bet=Bets_placed(team_a=form.teamA.data,team_b=form.teamB.data,condition=form.bet_condtion.data,stake=form.stake.data,
-                            ratio=form.ratio.data,return_=return_,user_id=current_user.username,date_placed=datetime.now())
-        
-        db.session.add(new_bet)
-        current_amount=User.query.filter_by(username=current_user.username).first()
-        current_amount.amount=current_amount.amount-form.stake.data
-        db.session.commit()
-        flash(f'Bet placed successfully', 'success')
-        return redirect(url_for('newbet'))
+        if balance > form.stake.data:
+            new_bet=Bets_placed(team_a=form.teamA.data,team_b=form.teamB.data,condition=form.bet_condtion.data,stake=form.stake.data,
+                                ratio=form.ratio.data,return_=return_,user_id=current_user.username,date_placed=datetime.now())
+            
+            db.session.add(new_bet)
+            current_amount=User.query.filter_by(username=current_user.username).first()
+            current_amount.amount=current_amount.amount-form.stake.data
+            db.session.commit()
+            flash(f'Bet placed successfully', 'success')
+            return redirect(url_for('newbet'))
+        else:
+            flash(f'Deposit money to place this bet', 'danger')
+            return redirect(url_for('newbet'))
+            
     
     
     
