@@ -51,7 +51,7 @@ class NewBet(FlaskForm):
     
     
 class Settle(FlaskForm) :
-    state = RadioField('BetStatus', choices=[('Won','Won'),('Lost','Lost'),('Cancel','Cancel')])
+    state = RadioField('BetStatus', choices=[('Won','Won'),('Lost','Lost'),('Void','Void')])
     submit = SubmitField('Settle')
     cancel = SubmitField('Cancel')
     

@@ -33,6 +33,7 @@ class Bets_placed(db.Model):
     
     
 class Transactions(db.Model):
+    transaction_id=db.Column(db.Integer,primary_key=True)
     id = db.Column(db.Integer, db.ForeignKey('user.id'))
     type=db.Column(db.String(10), nullable=False)
     date_placed = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

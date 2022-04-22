@@ -1,9 +1,10 @@
 from flask import render_template,url_for, flash, redirect , request
 from simulator import app,db,bcrypt
 from simulator.forms import RegistrationForm, LoginForm ,NewBet ,Settle,Deposit,Withdraw
-from simulator.models import User,Bets_placed
+from simulator.models import User,Bets_placed,Transactions
 from flask_login import login_user,current_user,logout_user,login_required
 from datetime import datetime 
+from sqlalchemy.sql import func
 
 @app.route('/index')
 @app.route('/')
@@ -72,6 +73,8 @@ def account():
     if form1.validate_on_submit():
         user=User.query.filter_by(username=current_user.username).first()
         user.amount=user.amount+form1.amount.data
+        user_transactions=Transactions(id=current_user.username,type='deposit',amount=form2.amount.data,date_placed=datetime.now())
+        db.session.add(user_transactions)
         db.session.commit()
         flash(f'{form1.amount.data} deposited Successfully ', 'success')
         if current_user.is_authenticated:
@@ -79,18 +82,12 @@ def account():
             balance=current_amount.amount
         return redirect(url_for('account'))
     
-    if form2.validate_on_submit():
-        user=User.query.filter_by(username=current_user.username).first()
-        user.amount=user.amount-form2.amount.data
-        print(user.amount)
-        db.session.commit()
-        flash(f'{form2.amount.data} deposited Successfully ', 'success')
-        if current_user.is_authenticated:
-            current_amount=User.query.filter_by(username=current_user.username).first()
-            balance=current_amount.amount
-        return redirect(url_for('account'))
-    
-    return render_template('account.html', title='Account',form1=form1,form2=form2,balance=balance)
+    total_deposited=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='deposit').first()
+    total_withdrawn=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='withdraw').first()
+
+    net_position=(total_deposited[0]-total_withdrawn[0])-balance
+
+    return render_template('account.html', title='Account',form1=form1,form2=form2,balance=balance,net_position=net_position)
     
 @app.route("/account/withdraw",methods=['GET', 'POST'])
 @login_required
@@ -101,7 +98,8 @@ def withdraw():
     if form2.validate_on_submit():
         user=User.query.filter_by(username=current_user.username).first()
         user.amount=user.amount-form2.amount.data
-        print(user.amount)
+        user_transactions=Transactions(id=current_user.username,type='withdraw',amount=form2.amount.data,date_placed=datetime.now())
+        db.session.add(user_transactions)
         db.session.commit()
         flash(f'{form2.amount.data} Withdrawn Successfully ', 'success')
         if current_user.is_authenticated:
@@ -177,7 +175,7 @@ def openbets():
             
         else:
             bet=Bets_placed.query.filter_by(id=bet_id).first()
-            bet.bet_status = 'void'
+            bet.bet_status = 'Void'
             current_amount=User.query.filter_by(username=current_user.username).first()
             bet.return_=0
             current_amount.amount=current_amount.amount+bet.stake
@@ -193,7 +191,7 @@ def bet_history():
     if current_user.is_authenticated:
             current_amount=User.query.filter_by(username=current_user.username).first()
             balance=current_amount.amount
-    bets=Bets_placed.query.filter_by(user_id=current_user.username,bet_status='Open')
+
     
     bets=Bets_placed.query.filter(Bets_placed.bet_status !='Open',Bets_placed.user_id==current_user.username)
     return render_template('bets_history.html',bets=bets,balance=balance)
