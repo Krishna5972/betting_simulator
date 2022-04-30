@@ -73,7 +73,7 @@ def account():
     if form1.validate_on_submit():
         user=User.query.filter_by(username=current_user.username).first()
         user.amount=user.amount+form1.amount.data
-        user_transactions=Transactions(id=current_user.username,type='deposit',amount=form2.amount.data,date_placed=datetime.now())
+        user_transactions=Transactions(username=current_user.username,type='deposit',amount=form2.amount.data,date_placed=datetime.now())
         db.session.add(user_transactions)
         db.session.commit()
         flash(f'{form1.amount.data} deposited Successfully ', 'success')
@@ -82,8 +82,8 @@ def account():
             balance=current_amount.amount
         return redirect(url_for('account'))
     
-    total_deposited=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='deposit').first()
-    total_withdrawn=db.session.query(func.sum(Transactions.amount)).filter(Transactions.id==current_user.username,Transactions.type=='withdraw').first()
+    total_deposited=db.session.query(func.sum(Transactions.amount)).filter(Transactions.username==current_user.username,Transactions.type=='deposit').first()
+    total_withdrawn=db.session.query(func.sum(Transactions.amount)).filter(Transactions.username==current_user.username,Transactions.type=='withdraw').first()
     try:
         net_position=balance-abs(total_deposited[0]-total_withdrawn[0])
     except TypeError:
@@ -105,7 +105,7 @@ def withdraw():
     if form2.validate_on_submit():
         user=User.query.filter_by(username=current_user.username).first()
         user.amount=user.amount-form2.amount.data
-        user_transactions=Transactions(id=current_user.username,type='withdraw',amount=form2.amount.data,date_placed=datetime.now())
+        user_transactions=Transactions(username=current_user.username,type='withdraw',amount=form2.amount.data,date_placed=datetime.now())
         db.session.add(user_transactions)
         db.session.commit()
         flash(f'{form2.amount.data} Withdrawn Successfully ', 'success')
@@ -129,7 +129,7 @@ def newbet():
         return_=form.stake.data*form.ratio.data
         if balance > form.stake.data:
             new_bet=Bets_placed(team_a=form.teamA.data,team_b=form.teamB.data,condition=form.bet_condtion.data,stake=form.stake.data,
-                                ratio=form.ratio.data,return_=return_,user_id=current_user.username,date_placed=datetime.now())
+                                ratio=form.ratio.data,return_=return_,username=current_user.username,date_placed=datetime.now())
             
             db.session.add(new_bet)
             current_amount=User.query.filter_by(username=current_user.username).first()
@@ -152,7 +152,7 @@ def openbets():
     if current_user.is_authenticated:
             current_amount=User.query.filter_by(username=current_user.username).first()
             balance=current_amount.amount
-    bets=Bets_placed.query.filter_by(user_id=current_user.username,bet_status='Open')
+    bets=Bets_placed.query.filter_by(username=current_user.username,bet_status='Open')
     form = Settle()
     # dict_={}
     # for i in qinter:
@@ -173,20 +173,20 @@ def openbets():
     if form.validate_on_submit():
         bet_id = request.form.get('bet_id')
         if form.state.data=='Won':
-            bet=Bets_placed.query.filter_by(id=bet_id).first()
+            bet=Bets_placed.query.filter_by(bet_id=bet_id).first()
             bet.bet_status = 'Won'
             current_amount=User.query.filter_by(username=current_user.username).first()
             current_amount.amount=current_amount.amount+bet.return_
             db.session.commit()
             
         elif form.state.data=='Lost':
-            bet=Bets_placed.query.filter_by(id=bet_id).first()
+            bet=Bets_placed.query.filter_by(bet_id=bet_id).first()
             bet.return_=0
             bet.bet_status = 'Lost'
             db.session.commit()
             
         else:
-            bet=Bets_placed.query.filter_by(id=bet_id).first()
+            bet=Bets_placed.query.filter_by(bet_id=bet_id).first()
             bet.bet_status = 'Void'
             current_amount=User.query.filter_by(username=current_user.username).first()
             bet.return_=0
@@ -205,5 +205,6 @@ def bet_history():
             balance=current_amount.amount
 
     
-    bets=Bets_placed.query.filter(Bets_placed.bet_status !='Open',Bets_placed.user_id==current_user.username)
+    bets=Bets_placed.query.filter(Bets_placed.bet_status !='Open',Bets_placed.username==current_user.username)
+    
     return render_template('bets_history.html',bets=bets,balance=balance)
