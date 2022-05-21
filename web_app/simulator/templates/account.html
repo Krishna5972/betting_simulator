@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>{{ current_user.username }}</h1>
+
+    <div class="content-section">
+        <form method="POST" action="" autocomplete="off">
+            {{ form1.hidden_tag() }}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Deposit today and get rekt</legend>
+                <div class="form-group">
+                    {{ form1.amount.label(class="form-control-label",autocomplete="off") }}
+    
+                    {% if form1.amount.errors %}
+                        {{ form1.amount(class="form-control form-control-lg is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form1.amount.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form1.amount(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div> 
+            </fieldset>
+
+            <div class="form-group">
+                {{ form1.submit(class="btn btn-outline-info") }}
+            </div>
+        </form>
+
+        <div class="content-section">
+            <form method="POST" action="/account/withdraw" autocomplete="off">
+                {{ form2.hidden_tag() }}
+                <fieldset class="form-group">
+                    <legend class="border-bottom mb-4">Withdraw</legend>
+                    <div class="form-group">
+                        {{ form2.amount.label(class="form-control-label",autocomplete="off") }}
+        
+                        {% if form2.amount.errors %}
+                            {{ form2.amount(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form2.amount.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form2.amount(class="form-control form-control-lg") }}
+                        {% endif %}
+                    </div> 
+                </fieldset>
+    
+                <div class="form-group">
+                    {{ form2.submit(class="btn btn-outline-info") }}
+                </div>
+            </form>
+            <em> Net Position : {{ net_position}}</em>
+    {% endblock content %}
+    

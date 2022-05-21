@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+<h2>Current Open Bets</h2>
+<table border="2">
+    <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Team A</th>
+        <th>Team B</th>
+        <th>Condition</th>
+        <th>Stake</th>
+        <th>Ratio</th>
+        <th>Return</th>
+        <th>Status</th>
+        
+ 
+        
+    </tr>         
+    {% for b in bets[::-1] %}
+    <tr>
+            
+        <td>{{  b.bet_id  }}</td>
+        <td>{{ (b.date_placed).strftime("%d/%m/%Y, %H:%M")  }}</td>
+        <td>{{  b.team_a  }}</td>
+        <td>{{  b.team_b  }}</td>
+        <td>{{  b.condition  }}</td>
+        <td>{{  b.stake  }}</td>
+        <td>{{  b.ratio  }}</td>
+        <td>{{  b.return_  }}</td>
+        <td>{{  b.bet_status  }}</td>
+
+        
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+        <td><div class="form-group">
+            {{ form.state.label(class="form-control-label") }}
+
+            {% if form.state.errors %}
+                {{ form.state(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.state.errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {{ form.state(class="form-control form-control-lg") }}
+            {% endif %}
+        <td><form method="post" action="openbets"><input type="submit" name="settle" value ="Settle" class="btn btn-xs white"/><input type="hidden" name="bet_id" value="{{b.bet_id}}" /></td>
+        
+        </fieldset>
+        
+            
+        
+        
+        </form>
+    
+        
+
+
+   
+
+            
+        </tr>
+        {% endfor %}
+     
+</table>
+
+
+
+{% endblock content %}
+

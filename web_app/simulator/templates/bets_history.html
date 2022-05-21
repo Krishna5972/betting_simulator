@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+
+{% block content %}
+
+
+<h2>Closed Bets</h2>
+<table border="2">
+    <tr>
+        <th>ID</th>
+        <th>Date</th>
+        <th>Team A</th>
+        <th>Team B</th>
+        <th>Condition</th>
+        <th>Stake</th>
+        <th>Ratio</th>
+        <th>Return</th>
+        <th>Status</th>
+        
+ 
+        
+    </tr>         
+    {% for b in bets[::-1] %}
+    <tr>
+            
+        <td>{{  b.bet_id  }}</td>
+        <td>{{ (b.date_placed).strftime("%d/%m/%Y, %H:%M")  }}</td>
+        <td>{{  b.team_a  }}</td>
+        <td>{{  b.team_b  }}</td>
+        <td>{{  b.condition  }}</td>
+        <td>{{  b.stake  }}</td>
+        <td>{{  b.ratio  }}</td>
+        <td>{{  b.return_  }}</td>
+        <td>{{  b.bet_status  }}</td>
+
+        </tr>
+        {% endfor %}
+     
+</table>
+
+
+
+{% endblock content %}
